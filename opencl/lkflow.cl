@@ -35,27 +35,10 @@
 
 #define FRAD 4
 #define eps 0.0000001f;
-#define LOCAL_X 16
-#define LOCAL_Y 8
-
-// at 16x8, GTX460
-// 20.5 ms all smem
-// 31.5 ms 2 smem, 1 tx
-// 41.5 ms 1 smem, 2 tx
-// 55.8 ms 3 tx
-
-// GTX580, same as above
-// 24.8 ms 0 smem 3 tx
-// 17.6 ms 1 smem 2 tx
-// 13.5 ms 2 smem 1 tx
-// 9.2 ms 3 tx
 
 __kernel void lkflow( 
     __read_only image2d_t I,
-    __read_only image2d_t Ix,
-    __read_only image2d_t Iy,
-    __read_only image2d_t G,
-    __read_only image2d_t J_float,
+    __read_only image2d_t J,
     __global float2 *guess_in,
     int guess_in_w,
     __global float2 *guess_out,
