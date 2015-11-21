@@ -27,9 +27,9 @@ cl::Kernel *kernel_lkflow;
 cl::Kernel *downfilter_kernel_x;
 cl::Kernel *downfilter_kernel_y;
 
-ocl_pyramid<3, SINGLE_CHANNEL_TYPE, CL_UNSIGNED_INT8> *I;
-ocl_pyramid<3, SINGLE_CHANNEL_TYPE, CL_UNSIGNED_INT8> *J ;
-ocl_image<SINGLE_CHANNEL_TYPE, CL_UNSIGNED_INT8> *Images[2];
+ocl_pyramid*I;
+ocl_pyramid*J ;
+ocl_image *Images[2];
 
 int opencl_init() {
 
@@ -109,10 +109,10 @@ void buildProgramFromFile()
     downfilter_kernel_y = new cl::Kernel(*Program_filter, "downfilter_y_g",&err);
     std::cout <<  "--->downfilter_kernel_y err " << oclErrorString(err) << std::endl;
 
-    I  = new ocl_pyramid<3,SINGLE_CHANNEL_TYPE,CL_UNSIGNED_INT8>();
-    J  = new ocl_pyramid<3,SINGLE_CHANNEL_TYPE,CL_UNSIGNED_INT8>();
-    Images[0] = new ocl_image<SINGLE_CHANNEL_TYPE,CL_UNSIGNED_INT8>();
-    Images[1] = new ocl_image<SINGLE_CHANNEL_TYPE,CL_UNSIGNED_INT8>();
+    I  = new ocl_pyramid(SINGLE_CHANNEL_TYPE,CL_UNSIGNED_INT8);
+    J  = new ocl_pyramid(SINGLE_CHANNEL_TYPE,CL_UNSIGNED_INT8);
+    Images[0] = new ocl_image();
+    Images[1] = new ocl_image();
 
     cl_mem_flags memflag;
     memflag = CL_MEM_READ_WRITE;
@@ -219,38 +219,6 @@ float calc_flow()
 
     //    }
     return t_flow;
-}
-
-
-ocl_image<SINGLE_CHANNEL_TYPE, CL_UNSIGNED_INT8> ocl_load_image(  const char *fname, cl_int &err  )
-{
-
-    cl_mem_flags memflag;
-    memflag = CL_MEM_READ_WRITE;
-
-    //    ocl_image<SINGLE_CHANNEL_TYPE, CL_UNSIGNED_INT8> img = cl::Image2D;
-    //    unsigned char *image_ub = NULL;
-
-
-    //    err = shrLoadPGMub( fname, (unsigned char **)&image_ub, &img.w, &img.h );
-    //    std::cerr<<"loading "<<fname<<std::endl;
-    //    oclCheckErrorEX( err, shrTRUE, NULL );
-
-
-    //    img.image_format.image_channel_order  =  SINGLE_CHANNEL_TYPE;
-    //    img.image_format.image_channel_data_type  = CL_UNSIGNED_INT8;
-
-    //    img.image_mem = clCreateImage2D( context, memflag,  &img.image_format,
-    //                                     img.w, img.h, 0, NULL,  &err);
-    //    checkErr(err, __LINE__,"ocl_load_image::clCreateImage2D");
-
-    //    size_t origin[3] = {0};
-    //    size_t region[3] = {img.w, img.h, 1};
-    //    clEnqueueWriteImage( command_queue, img.image_mem, CL_TRUE, origin, region,
-    //                         img.w, 0, image_ub, 0, NULL, NULL );
-    //    checkErr(err, __LINE__, "ocl_load_image::clEnqueuWriteImage");
-    //    return img;
-
 }
 
 

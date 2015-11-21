@@ -89,7 +89,7 @@ int main( int argc, char** argv )
 //    kernel_add.setArg(0,buffer_A);
 //    kernel_add.setArg(1,buffer_B);
 //    kernel_add.setArg(2,buffer_C);
-//    queue.enqueueNDRangeKernel((kernel_add,cl::NullRange,cl::NDRange(10),cl::NullRange);
+//    queue.enqueueNDRangeKernel(kernel_add,cl::NullRange,cl::NDRange(10),cl::NullRange);
 //    queue.finish();
 
 //    int C[10];
@@ -98,8 +98,15 @@ int main( int argc, char** argv )
 
 //    std::cout<<" result: \n";
 //    for(int i=0;i<10;i++){
-//        std::cout<<C[i]<<" ";
+//        std::cout<<((int*)&buffer_C.)[i]<<" ";
+
 //    }
 
+//    std::cout << std::endl;
+
+//    for(int i=0;i<10;i++){
+//        std::cout<<C[i]<<" ";
+
+//    }
 //    return 0;
 //}

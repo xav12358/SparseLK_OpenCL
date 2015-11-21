@@ -12,6 +12,7 @@ __kernel void downfilter_x_g(
     const int ix = get_global_id(0);
     const int iy = get_global_id(1);
 
+    //printf("ix %d iy %d",ix,iy);
     float x0 = read_imageui( src, srcSampler, (int2)(ix-2, iy ) ).x/16.0f;
     float x1 = read_imageui( src, srcSampler, (int2)(ix-1, iy ) ).x/4.0f;
     float x2 = (3*read_imageui( src, srcSampler, (int2)(ix, iy )).x)/8.0f;

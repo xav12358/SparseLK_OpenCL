@@ -1,38 +1,3 @@
-/*
- * Copyright 1993-2010 NVIDIA Corporation.  All rights reserved.
- *
- * NVIDIA Corporation and its licensors retain all intellectual property and 
- * proprietary rights in and to this software and related documentation. 
- * Any use, reproduction, disclosure, or distribution of this software 
- * and related documentation without an express license agreement from
- * NVIDIA Corporation is strictly prohibited.
- *
- * Please refer to the applicable NVIDIA end user license agreement (EULA) 
- * associated with this source code for terms and conditions that govern 
- * your use of this NVIDIA software.
- * 
- */
-// Peform the Lucas-Kanade iterations for pyramidal optical flow.
-// Each thread performs operations for a single pixel, and 
-// iterates multiple times.  This function is launched for each
-// pyramid level and each pyarmid level beyond the first uses
-// the guess from the previous pyramid level (guess_in) and produces
-// a guess for the next pyramid level (guess_out) if there is another level. 
-// Note: This heavily uses textures and floating point interpolation when
-//  subsampling on  the "J" image. 
-// Variables:
-// I: first image of the pair
-// J: second image of the pair
-// Ix, Iy: x & y derivatives of the I image
-// G: Each element of G contains the elements of the 2x2 matrix G calculated
-//    at each point (in filters.cl::filter_G())
-// guess_in, guess_out: the previous level's guess and this level's guess to
-//    be used by the next level
-// w,h: image dimensions
-// use_guess: flag whether or not to use the guess_in to seed motion, 
-//   (set false for example at the top pyramid level where no previous
-//    guess exists).
-
 #define FRAD 4
 #define eps 0.0000001f;
 
