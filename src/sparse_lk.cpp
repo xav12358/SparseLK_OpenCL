@@ -17,6 +17,7 @@
 #include <include/oclpyramid.h>
 
 
+
 cl::Platform *current_platform;
 cl::Device *current_device;
 cl::Context *context;
@@ -81,7 +82,9 @@ void buildProgramFromFile()
                                                   cl_string.length() + 1));
 
     // create program
-    Program_lkFLow = new cl::Program(*context, source);
+    Program_lkFLow = new cl::Program(*context, source,&err);
+
+
 
     // compile opencl source
     Program_lkFLow->build(curVecDevice);
@@ -90,6 +93,11 @@ void buildProgramFromFile()
     kernel_lkflow = new cl::Kernel(*Program_lkFLow, "lkflow",&err);
     std::cout <<  "--->lkflow err " << oclErrorString(err) << std::endl;
 
+    if(err != CL_SUCCESS){
+        std::cout << "Build Status: " << Program_lkFLow->getBuildInfo<CL_PROGRAM_BUILD_STATUS>(*current_device) << std::endl;
+        std::cout << "Build Options:\t" << Program_lkFLow->getBuildInfo<CL_PROGRAM_BUILD_OPTIONS>(*current_device) << std::endl;
+        std::cout << "Build Log:\t " << Program_lkFLow->getBuildInfo<CL_PROGRAM_BUILD_LOG>(*current_device) << std::endl;
+    }
 
     // load opencl source
     std::ifstream cl_file2("/home/xavier/Bureau/Developpement/SparseLK_OpenCL/opencl/filters.cl");
