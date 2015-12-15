@@ -6,7 +6,7 @@
 
 
 void    buildProgramFromFile();
-float   calc_flow();
+void    calc_flow();
 int     opencl_init();
 
 

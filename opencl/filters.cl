@@ -1,11 +1,11 @@
 // launched over downsampled area
 // first pass sampling from larger level, so x2 the coordinates
-__kernel void downfilter_x_g( 
+__kernel void downfilter_x_g(
     __read_only image2d_t src,
     __global uchar *dst, int dst_w, int dst_h )
 {
 
-    sampler_t srcSampler = CLK_NORMALIZED_COORDS_FALSE | 
+    sampler_t srcSampler = CLK_NORMALIZED_COORDS_FALSE |
         CLK_ADDRESS_CLAMP_TO_EDGE |
         CLK_FILTER_NEAREST ;
 
@@ -26,14 +26,14 @@ __kernel void downfilter_x_g(
     }
 }
 
-// Simultaneously does a Y smoothing filter and downsampling (i.e. only does filter at 
+// Simultaneously does a Y smoothing filter and downsampling (i.e. only does filter at
 // downsampled points.  Writes to the next smaller pyramid level whose max dimensions are
 // given by dst_w/dst_h
 __kernel void downfilter_y_g(
     __read_only image2d_t src,
     __global uchar *dst, int dst_w, int dst_h )
 {
-    sampler_t srcSampler = CLK_NORMALIZED_COORDS_FALSE | 
+    sampler_t srcSampler = CLK_NORMALIZED_COORDS_FALSE |
         CLK_ADDRESS_CLAMP_TO_EDGE |
         CLK_FILTER_NEAREST ;
 
@@ -51,5 +51,5 @@ __kernel void downfilter_y_g(
     if( ix < dst_w-2 && iy < dst_h-2 ) {
         dst[iy*dst_w + ix ] = (uchar)output;
     }
- 
+
 }
