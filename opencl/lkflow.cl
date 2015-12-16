@@ -1,4 +1,4 @@
-#define HALF_WIN 10
+#define HALF_WIN 15
 
 
 __kernel void lkflow( 
@@ -51,7 +51,7 @@ __kernel void lkflow(
     {
         for(int x= get_local_id(0) ;x< maxXY;x = x+get_local_size(0))
         {
-            smem[y][x] = read_imageui( I, nnSampler, PrevPtL+(float2)(x,y) ).x;
+            smem[y][x] = read_imagef( I, nnSampler, PrevPtL+(float2)(x,y) ).x;
 //            if(y < maxXY-2 && x< maxXY -2)
 //            {
 
@@ -193,8 +193,8 @@ __kernel void lkflow(
                 for(int x= get_local_id(0) ;x< maxXY;x = x+get_local_size(0))
                 {
                 float I_val = smem[y+1][x+1];//read_imageui( J, nnSampler, PrevPtL+(float2)(x,y) ).x;
-                float J_val = read_imageui( J, bilinSampler, NextPtL+(float2)(x,y) ).x;
-                float diff = (J_val - I_val) * ilevel;//2.0f;
+                float J_val = read_imagef( J, bilinSampler, NextPtL+(float2)(x,y) ).x;
+                float diff = (J_val - I_val)*32.0;//* 32.0f;
 
 //                ftmp[y*(2*5+1) +x].x = I_val;//PrevPtL.x;//NextPtL.x;//+x;//I_val;
 //                ftmp[y*(2*5+1) +x].y = J_val;//PrevPtL.y;//NextPtL.y;//+y;//J_val;
