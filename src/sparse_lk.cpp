@@ -43,7 +43,7 @@ int opencl_init() {
         std::cout<<" No platforms found. Check OpenCL installation!\n";
         exit(1);
     }
-    current_platform = new cl::Platform(all_platforms[0]);
+    current_platform = new cl::Platform(all_platforms[1]);
     std::cout << "Using platform: "<<current_platform->getInfo<CL_PLATFORM_NAME>()<<"\n";
 
     //get default device of the default platform
@@ -77,22 +77,18 @@ void buildProgramFromFile()
     std::vector<cl::Device> curVecDevice;
     curVecDevice.push_back(*current_device);
     // load opencl source
-    std::ifstream cl_file("/home/xavier/Bureau/Developpement/SparseLK_OpenCL/opencl/lkflow.cl");
+    std::ifstream cl_file("/home/lineo/Bureau/Developpement/SparseLK_OpenCL/opencl/lkflow.cl");
     std::string cl_string(std::istreambuf_iterator<char>(cl_file), (std::istreambuf_iterator<char>()));
     cl::Program::Sources source(1, std::make_pair(cl_string.c_str(),
                                                   cl_string.length() + 1));
-
     // create program
     Program_lkFLow = new cl::Program(*context, source,&err);
-
-
 
     // compile opencl source
     Program_lkFLow->build(curVecDevice);
 
     // load named kernel from opencl source
     kernel_lkflow = new cl::Kernel(*Program_lkFLow, "lkflow",&err);
-    std::cout <<  "--->lkflow err " << oclErrorString(err) << std::endl;
 
     if(err != CL_SUCCESS){
         std::cout << "Build Status: " << Program_lkFLow->getBuildInfo<CL_PROGRAM_BUILD_STATUS>(*current_device) << std::endl;
@@ -101,11 +97,10 @@ void buildProgramFromFile()
     }
 
     // load opencl source
-    std::ifstream cl_file2("/home/xavier/Bureau/Developpement/SparseLK_OpenCL/opencl/filters.cl");
+    std::ifstream cl_file2("/home/lineo/Bureau/Developpement/SparseLK_OpenCL/opencl/filters.cl");
     std::string cl_string2(std::istreambuf_iterator<char>(cl_file2), (std::istreambuf_iterator<char>()));
     cl::Program::Sources source2(1, std::make_pair(cl_string2.c_str(),
                                                    cl_string2.length() + 1));
-
     // create program
     Program_filter = new cl::Program(*context, source2);
 
@@ -114,9 +109,7 @@ void buildProgramFromFile()
 
     // load named kernel from opencl source
     downfilter_kernel_x = new cl::Kernel(*Program_filter, "downfilter_x_g",&err);
-    std::cout <<  "--->downfilter_kernel_x err " << oclErrorString(err) << std::endl;
     downfilter_kernel_y = new cl::Kernel(*Program_filter, "downfilter_y_g",&err);
-    std::cout <<  "--->downfilter_kernel_y err " << oclErrorString(err) << std::endl;
 
     if(err != CL_SUCCESS){
         std::cout << "Build Status: " << Program_lkFLow->getBuildInfo<CL_PROGRAM_BUILD_STATUS>(*current_device) << std::endl;
@@ -147,11 +140,11 @@ void buildProgramFromFile()
 
     std::cout << "load image 1" << std::endl;
     cv::Mat Image1;
-    Image1 = cv::imread("/home/xavier/Bureau/Developpement/SparseLK_OpenCL/data/minicooper/frame10.png",0);
+    Image1 = cv::imread("/home/lineo/Bureau/Developpement/SparseLK_OpenCL/data/minicooper/frame10.png",0);
 
     std::cout << "load image 2" << std::endl;
     cv::Mat Image2;
-    Image2 = cv::imread("/home/xavier/Bureau/Developpement/SparseLK_OpenCL/data/minicooper/frame11.png",0);
+    Image2 = cv::imread("/home/lineo/Bureau/Developpement/SparseLK_OpenCL/data/minicooper/frame11.png",0);
 
 
     //////////////////////////////////////////////////
@@ -161,8 +154,8 @@ void buildProgramFromFile()
     cv::vector<uchar> Status;
     cv::Mat error;
     int indice= 0;
-    int iNbPt = 20;
-    for(int i=0;i<1 && indice<iNbPt;i++)
+    int iNbPt = 10;
+    for(int i=1;i<2 && indice<iNbPt;i++)
         for(int j=0;j<10 && indice<iNbPt;j++)
         {
             PrevPt.push_back(cv::Point2f(200+i*40.0,100+j*40.0));
@@ -225,7 +218,7 @@ void calc_flow()
     //////////////////////////////////////////////
     //////////////////////////////////////////////
 
-    int iNbPt = 10;
+    int iNbPt = 5;
     cl_float2 *PrevPt = (cl_float2*)malloc(iNbPt*sizeof(cl_float2));
     cl_float2 *NextPt = (cl_float2*)malloc(iNbPt*sizeof(cl_float2));
     cl_uchar *uStatus = (cl_uchar*)malloc(iNbPt*sizeof(cl_uchar));
@@ -240,18 +233,40 @@ void calc_flow()
 
 
     int indice = 0;
-    for(int i=0;i<1 && indice<iNbPt;i++)
-        for(int j=0;j<10 && indice<iNbPt;j++)
-        {
-            PrevPt[indice].x = (200+i*40.0);
-            PrevPt[indice].y = (100+j*40.0);
+//    for(int i=3;i<4 && indice<iNbPt;i++)
+//        for(int j=0;j<10 && indice<iNbPt;j++)
+//        {
+//            PrevPt[indice].x = (200+i*40.0);
+//            PrevPt[indice].y = (100+j*40.0);
 
-            NextPt[indice].x = (200+i*40.0)/(1<<(3));
-            NextPt[indice].y = (100+j*40.0)/(1<<(3));
-            uStatus[i]= 1;
-            indice++;
-        }
+//            NextPt[indice].x = (200+i*40.0)/(1<<(3));
+//            NextPt[indice].y = (100+j*40.0)/(1<<(3));
+//            uStatus[i]= 1;
+//            indice++;
+//        }
 
+
+    PrevPt[0].x = (277);
+    PrevPt[0].y = (333);
+    PrevPt[1].x = (269);
+    PrevPt[1].y = (194);
+    PrevPt[2].x = (288);
+    PrevPt[2].y = (375);
+    PrevPt[3].x = (444);
+    PrevPt[3].y = (131);
+    PrevPt[4].x = (292);
+    PrevPt[4].y = (298);
+
+    NextPt[0].x = (277)/(1<<(3));
+    NextPt[0].y = (333)/(1<<(3));
+    NextPt[1].x = (269)/(1<<(3));
+    NextPt[1].y = (194)/(1<<(3));
+    NextPt[2].x = (288)/(1<<(3));
+    NextPt[2].y = (375)/(1<<(3));
+    NextPt[3].x = (444)/(1<<(3));
+    NextPt[3].y = (131)/(1<<(3));
+    NextPt[4].x = (292)/(1<<(3));
+    NextPt[4].y = (298)/(1<<(3));
 
     queue->enqueueWriteBuffer(PrevPtBuffer,TRUE,0,iNbPt*sizeof(cl_float2),PrevPt);
     queue->enqueueWriteBuffer(NextPtBuffer,TRUE,0,iNbPt*sizeof(cl_float2),NextPt);
@@ -263,93 +278,41 @@ void calc_flow()
     cl::NDRange local_work_size(16,8);
 
     std::cout << "<<<<<<<<<<kernel_lkflow " << oclErrorString(err) << std::endl;
-
-    //    local_work_size[0] =16;
-    //    local_work_size[1] =8;
-
-    //    global_work_size[0] = local_work_size[0];
-    //    global_work_size[1] = local_work_size[1];
+    for(int il=0;il<iNbPt;il++)
+    {
+        std::cout << "AVANT prev :  "<< PrevPt[il].x << " " << PrevPt[il].y << " Next " << NextPt[il].x << " " << NextPt[il].y << std::endl;
+    }
 
     for( int i=lvls-1; i>=0 ; i-- )
     {
         int argCnt = 0;
         err = kernel_lkflow->setArg(  argCnt++, (I->imgLvl[i].mem));
-        std::cout << "kernel_lkflow " << oclErrorString(err) << std::endl;
         err = kernel_lkflow->setArg(  argCnt++, (J->imgLvl[i].mem) );
-        std::cout << "kernel_lkflow " << oclErrorString(err) << std::endl;
-
         err = kernel_lkflow->setArg(  argCnt++, PrevPtBuffer );
-        std::cout << "kernel_lkflow " << oclErrorString(err) << std::endl;
         err = kernel_lkflow->setArg(  argCnt++, NextPtBuffer );
-        std::cout << "kernel_lkflow " << oclErrorString(err) << std::endl;
         err = kernel_lkflow->setArg(  argCnt++, uStatusBuffer );
-        std::cout << "kernel_lkflow " << oclErrorString(err) << std::endl;
-
         err = kernel_lkflow->setArg(  argCnt++, ftmpBuffer );
-        std::cout << "kernel_lkflow " << oclErrorString(err) << std::endl;
-
 
         err = kernel_lkflow->setArg(  argCnt++, (I->imgLvl[i].h) ); // cols
-        std::cout << "kernel_lkflow " << oclErrorString(err) << std::endl;
         err = kernel_lkflow->setArg(  argCnt++, (I->imgLvl[i].w) ); // rows
-        std::cout << "kernel_lkflow " << oclErrorString(err) << std::endl;
-        err = kernel_lkflow->setArg(  argCnt++, 10 ); // number of iter
-        std::cout << "kernel_lkflow " << oclErrorString(err) << std::endl;
+        err = kernel_lkflow->setArg(  argCnt++, 5 ); // number of iter
         err = kernel_lkflow->setArg(  argCnt++, i );  // level
-        std::cout << "kernel_lkflow " << oclErrorString(err) << std::endl;
 
 
         err = queue->enqueueNDRangeKernel(*kernel_lkflow,cl::NullRange,global_work_size,local_work_size);
-        std::cout << "kernel_lkflow  enqueue " << oclErrorString(err) << std::endl;
-        //        std::cout << "found next:  " << NextPt[0].x << " " << NextPt[0].y << std::endl;
-
         queue->enqueueReadBuffer(NextPtBuffer,TRUE,NULL,iNbPt*sizeof(cl_float2),NextPt);
         queue->enqueueReadBuffer(ftmpBuffer,TRUE,NULL,(5*2+1)*(5*2+1)*sizeof(cl_float2),ftmp);
-
-//        for(int il=0;il<iNbPt;il++)
-//        {
-//            std::cout << "prev :  "<< PrevPt[il].x/(1<<(i)) << " " << PrevPt[il].y/(1<<(i)) << " Next " << NextPt[il].x << " " << NextPt[il].y << std::endl;
-//        }
-
-
-//        for(int il=0;il<(2*5+1)*(2*5+1);il++)
-//        {
-//            if(il%(2*5+1) == 0)
-//                std::cout << std::endl;
-
-//            std::cout << (float)ftmp[il].x << " ";
-//        }
-
-
-//        std::cout << "----------------------------- ";
-//        for(int il=0;il<(2*5+1)*(2*5+1);il++)
-//        {
-//            if(il%(2*5+1) == 0)
-//                std::cout << std::endl;
-
-//            std::cout << (int)ftmp[il].y << " ";
-//        }
-        //        __global  float2 *prevPt,
-        //        __global  float2 *nextPt,
-        //        __global uchar *status,
-
-        //        err = clEnqueueNDRangeKernel( cmdq, lkflow_kernel, 2, 0,
-        //            global_work_size, local_work_size, 0, NULL, &flow_timer );
-        //        checkErr( err, __LINE__, "lkflowKernel");
-
-        //        clWaitForEvents(1, &flow_timer );
 
     }
 
     for(int j=0;j<iNbPt;j++)
     {
-        cv::line( *ImageConcat, cv::Point( PrevPt[j].x, PrevPt[j].y ), cv::Point( NextPt[j].x+640, NextPt[j].y ) ,cv::Scalar(255,255,255));
+        cv::line( *ImageConcat, cv::Point( PrevPt[j].x, PrevPt[j].y ), cv::Point( NextPt[j].x+640, NextPt[j].y ) ,cv::Scalar(0,0,0));
         std::cout << "prev :  "<< PrevPt[j].x << " " << PrevPt[j].y << " Next " << NextPt[j].x << " " << NextPt[j].y << std::endl;
     }
 
     cv::imwrite("ImageConcatResult.png",*ImageConcat);
 }
-
 
 
 

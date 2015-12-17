@@ -87,8 +87,8 @@ size_t DivUp(size_t dividend, size_t divisor)
 
 ////////////////////////////////////////////////
 ocl_pyramid::ocl_pyramid( cl_channel_order ch, cl_channel_type dt):
-channel_order(ch),
-  data_type(dt)
+    channel_order(ch),
+    data_type(dt)
 {
 
 }
@@ -127,10 +127,6 @@ cl_int ocl_pyramid::init(cl::Context &ctx,int w, int h, const char *name )
 
     }
 
-    // initialize a scratch buffer
-    // on Mac, it is a linear buffer used between texture passes
-    // on LInux it is a R/W texture, presumably faster
-
     memflag = CL_MEM_READ_WRITE;
     scratchImg.w = imgLvl[0].w;
     scratchImg.h = imgLvl[0].h;
@@ -152,9 +148,9 @@ cl_int ocl_pyramid::init(cl::Context &ctx,int w, int h, const char *name )
 }
 
 cl_int ocl_pyramid::fill(ocl_image &img,
-                                                       cl::Kernel downfilter_kernel_x,
-                                                       cl::Kernel downfilter_kernel_y,
-                                                       cl::CommandQueue &cmdq)
+                         cl::Kernel downfilter_kernel_x,
+                         cl::Kernel downfilter_kernel_y,
+                         cl::CommandQueue &cmdq)
 {
     static cl_int err = CL_SUCCESS;
 
@@ -174,31 +170,12 @@ cl_int ocl_pyramid::fill(ocl_image &img,
     region[0] = img.w;
     region[1] = img.h;
     region[2] = 1;
-    // copy level 0 image (full size)
 
-    //    std::cout << "Fill: copy image" << std::endl;
-    //    cl::NDRange dims1(img.mem.getImageInfo<CL_IMAGE_WIDTH>(),
-    //                      img.mem.getImageInfo<CL_IMAGE_HEIGHT>());
-    //    std::cout << "Fill: copy image size1 " << dims1[0] << " " << dims1[1] << std::endl;
-
-    //    (imgLvl[0]).mem.getImageInfo<CL_IMAGE_WIDTH>();
-    //    cl::NDRange dims2(imgLvl[0].mem.getImageInfo<CL_IMAGE_WIDTH>(),imgLvl[0].mem.getImageInfo<CL_IMAGE_HEIGHT>());
-    //    std::cout << "Fill: copy image size2 " << dims2[0] << " " << dims2[1] << std::endl;
-    //    imgLvl[0].mem = img.mem;
-    cmdq.enqueueCopyImage( img.mem,
-                           imgLvl[0].mem,
-            src_origin,
-            dst_origin,
-            region );
-
-    region[0] = imgLvl[0].w;
-    region[1] = imgLvl[0].h;
-    region[2] = 1;
+    cmdq.enqueueCopyImage( img.mem, imgLvl[0].mem,src_origin, dst_origin, region );
 
     cv::Mat ImageScaledinit(imgLvl[0].h,imgLvl[0].w,CV_8UC1);
     cmdq.enqueueReadImage( imgLvl[0].mem, CL_TRUE, src_origin, region, ImageScaledinit.cols, 0, ImageScaledinit.data);
     cv::imwrite("Image_L1.png",ImageScaledinit);
-    //    std::cout << "Fill: copy image fin" << std::endl;
 
     for(  i=1 ; i<3 ; i++ ) {
 
@@ -206,19 +183,14 @@ cl_int ocl_pyramid::fill(ocl_image &img,
         cl::NDRange local_work_sizes(32,32);
         cl::NDRange global_work_sizes = cl::NDRange( 32 * DivUp( imgLvl[i-1].w, 32),
                 32 * DivUp( imgLvl[i-1].h, 32)) ;
+
         cl_int err;
         int argCnt = 0;
 
-        //        std::cout << "Level-1 size " << imgLvl[i-1].w << " " << imgLvl[i-1].h << std::endl;
-
         err = downfilter_kernel_x.setArg(argCnt++,  imgLvl[i-1].mem );
-        std::cout << "downfilter_kernel_x " << oclErrorString(err) << std::endl;
         err = downfilter_kernel_x.setArg(argCnt++,  scratchBuf.mem );
-        std::cout << "downfilter_kernel_x " << oclErrorString(err) << std::endl;
         err = downfilter_kernel_x.setArg(argCnt++,  imgLvl[i-1].w );
-        std::cout << "downfilter_kernel_x " << oclErrorString(err) << std::endl;
         err = downfilter_kernel_x.setArg(argCnt++,  imgLvl[i-1].h );
-        std::cout << "downfilter_kernel_x " << oclErrorString(err) << std::endl;
 
         cmdq.enqueueNDRangeKernel(downfilter_kernel_x, cl::NullRange,global_work_sizes, local_work_sizes, 0);
         cmdq.enqueueCopyBufferToImage(  scratchBuf.mem, scratchImg.mem,0, dst_origin, region );
@@ -228,27 +200,13 @@ cl_int ocl_pyramid::fill(ocl_image &img,
         region[1] = imgLvl[i-1].h;
         region[2] = 1;
 
-        //        std::cout << "ImageScaled_x " << imgLvl[i].w << " " << imgLvl[i].h << std::endl;
-        //        cv::Mat ImageScaled_x(imgLvl[0].h,imgLvl[0].w,CV_8UC1);
-        //        cmdq.enqueueReadImage( scratchImg.mem, CL_TRUE, src_origin, region, ImageScaledinit.cols, 0, ImageScaled_x.data);
-        //        cv::imwrite("Imaged.png",ImageScaled_x);
-
-
-
         global_work_sizes = cl::NDRange(32 * DivUp( imgLvl[i].w, 32),
                                         32 * DivUp( imgLvl[i].h, 32 )) ;
         argCnt = 0;
-
-        // send the imgLvl[i] texture holding teh first pass as input
-        // send the scratch buffer as output
         err = downfilter_kernel_y.setArg( argCnt++,  scratchImg.mem );
-        std::cout << "downfilter_kernel_y " << oclErrorString(err) << std::endl;
         err = downfilter_kernel_y.setArg( argCnt++,  scratchBuf.mem );
-        std::cout << "downfilter_kernel_y " << oclErrorString(err) << std::endl;
         err = downfilter_kernel_y.setArg( argCnt++,  imgLvl[i].w );
-        std::cout << "downfilter_kernel_y " << oclErrorString(err) << std::endl;
         err = downfilter_kernel_y.setArg( argCnt++,  imgLvl[i].h );
-        std::cout << "downfilter_kernel_y " << oclErrorString(err) << std::endl;
 
         region[0] = imgLvl[i].w;
         region[1] = imgLvl[i].h;
@@ -256,9 +214,6 @@ cl_int ocl_pyramid::fill(ocl_image &img,
         cmdq.enqueueNDRangeKernel(downfilter_kernel_y,  cl::NullRange, global_work_sizes, local_work_sizes);
         cmdq.enqueueCopyBufferToImage( scratchBuf.mem, imgLvl[i].mem,0, dst_origin, region);
 
-
-        //        cl::size_t<3> src_origin;
-        //        cl::size_t<3> region;
 
         src_origin[0] = 0;
         src_origin[1] = 0;
@@ -268,21 +223,18 @@ cl_int ocl_pyramid::fill(ocl_image &img,
         region[1] = imgLvl[i].h;
         region[2] = 1;
 
-                if(i == 1)
-                {
-        //            qDebug() << "<<<<<<<<<<<<<<<<<<<<<<<";
-        //            std::cout << "scale size " << imgLvl[i].w << " " << imgLvl[i].h << std::endl;
-                    cv::Mat ImageScaled(imgLvl[i].h,imgLvl[i].w,CV_8UC1);
-                    cmdq.enqueueReadImage( imgLvl[i].mem, CL_TRUE, src_origin, region, ImageScaled.cols, 0, ImageScaled.data);
-                    cv::imwrite("ImageScaled_L1.png",ImageScaled);
+        if(i == 1)
+        {
+            cv::Mat ImageScaled(imgLvl[i].h,imgLvl[i].w,CV_8UC1);
+            cmdq.enqueueReadImage( imgLvl[i].mem, CL_TRUE, src_origin, region, ImageScaled.cols, 0, ImageScaled.data);
+            cv::imwrite("ImageScaled_L1.png",ImageScaled);
 
-                }else if(i==2)
-                {
-        //            std::cout << "scale size " << imgLvl[i].w << " " << imgLvl[i].h << std::endl;
-                    cv::Mat ImageScaled(imgLvl[i].h,imgLvl[i].w,CV_8UC1);
-                    cmdq.enqueueReadImage( imgLvl[i].mem, CL_TRUE, src_origin, region, ImageScaled.cols, 0, ImageScaled.data);
-                    cv::imwrite("ImageScaled_L2.png",ImageScaled);
-                }
+        }else if(i==2)
+        {
+            cv::Mat ImageScaled(imgLvl[i].h,imgLvl[i].w,CV_8UC1);
+            cmdq.enqueueReadImage( imgLvl[i].mem, CL_TRUE, src_origin, region, ImageScaled.cols, 0, ImageScaled.data);
+            cv::imwrite("ImageScaled_L2.png",ImageScaled);
+        }
 
     }
     return err;
