@@ -90,7 +90,8 @@ void buildProgramFromFile()
     // load named kernel from opencl source
     kernel_lkflow = new cl::Kernel(*Program_lkFLow, "lkflow",&err);
 
-    if(err != CL_SUCCESS){
+    //if(err != CL_SUCCESS)
+    {
         std::cout << "Build Status: " << Program_lkFLow->getBuildInfo<CL_PROGRAM_BUILD_STATUS>(*current_device) << std::endl;
         std::cout << "Build Options:\t" << Program_lkFLow->getBuildInfo<CL_PROGRAM_BUILD_OPTIONS>(*current_device) << std::endl;
         std::cout << "Build Log:\t " << Program_lkFLow->getBuildInfo<CL_PROGRAM_BUILD_LOG>(*current_device) << std::endl;
@@ -111,10 +112,11 @@ void buildProgramFromFile()
     downfilter_kernel_x = new cl::Kernel(*Program_filter, "downfilter_x_g",&err);
     downfilter_kernel_y = new cl::Kernel(*Program_filter, "downfilter_y_g",&err);
 
-    if(err != CL_SUCCESS){
-        std::cout << "Build Status: " << Program_lkFLow->getBuildInfo<CL_PROGRAM_BUILD_STATUS>(*current_device) << std::endl;
-        std::cout << "Build Options:\t" << Program_lkFLow->getBuildInfo<CL_PROGRAM_BUILD_OPTIONS>(*current_device) << std::endl;
-        std::cout << "Build Log:\t " << Program_lkFLow->getBuildInfo<CL_PROGRAM_BUILD_LOG>(*current_device) << std::endl;
+    //if(err != CL_SUCCESS)
+    {
+        std::cout << "Build Status: " << Program_filter->getBuildInfo<CL_PROGRAM_BUILD_STATUS>(*current_device) << std::endl;
+        std::cout << "Build Options:\t" << Program_filter->getBuildInfo<CL_PROGRAM_BUILD_OPTIONS>(*current_device) << std::endl;
+        std::cout << "Build Log:\t " << Program_filter->getBuildInfo<CL_PROGRAM_BUILD_LOG>(*current_device) << std::endl;
     }
 
     I  = new ocl_pyramid(SINGLE_CHANNEL_TYPE,CL_UNSIGNED_INT8);
@@ -154,7 +156,7 @@ void buildProgramFromFile()
     cv::vector<uchar> Status;
     cv::Mat error;
     int indice= 0;
-    int iNbPt = 10;
+    int iNbPt = 5;
     for(int i=1;i<2 && indice<iNbPt;i++)
         for(int j=0;j<10 && indice<iNbPt;j++)
         {
@@ -164,8 +166,29 @@ void buildProgramFromFile()
             indice++;
         }
 
+    PrevPt[0].x = (277);
+    PrevPt[0].y = (333);
+    PrevPt[1].x = (269);
+    PrevPt[1].y = (194);
+    PrevPt[2].x = (288);
+    PrevPt[2].y = (375);
+    PrevPt[3].x = (444);
+    PrevPt[3].y = (131);
+    PrevPt[4].x = (292);
+    PrevPt[4].y = (298);
 
-    cv::calcOpticalFlowPyrLK(Image1,Image2,PrevPt,NextPt,Status,error);
+    NextPt[0].x = (277)/(1<<(3));
+    NextPt[0].y = (333)/(1<<(3));
+    NextPt[1].x = (269)/(1<<(3));
+    NextPt[1].y = (194)/(1<<(3));
+    NextPt[2].x = (288)/(1<<(3));
+    NextPt[2].y = (375)/(1<<(3));
+    NextPt[3].x = (444)/(1<<(3));
+    NextPt[3].y = (131)/(1<<(3));
+    NextPt[4].x = (292)/(1<<(3));
+    NextPt[4].y = (298)/(1<<(3));
+
+    cv::calcOpticalFlowPyrLK(Image1,Image2,PrevPt,NextPt,Status,error);//,cv::Size(5,5),3,cv::TermCriteria(cv::TermCriteria::COUNT,100,0.01));
 
     /// ///////////////////////
     cv::Size sz1 = Image1.size();
@@ -257,16 +280,16 @@ void calc_flow()
     PrevPt[4].x = (292);
     PrevPt[4].y = (298);
 
-    NextPt[0].x = (277)/(1<<(3));
-    NextPt[0].y = (333)/(1<<(3));
-    NextPt[1].x = (269)/(1<<(3));
-    NextPt[1].y = (194)/(1<<(3));
-    NextPt[2].x = (288)/(1<<(3));
-    NextPt[2].y = (375)/(1<<(3));
-    NextPt[3].x = (444)/(1<<(3));
-    NextPt[3].y = (131)/(1<<(3));
-    NextPt[4].x = (292)/(1<<(3));
-    NextPt[4].y = (298)/(1<<(3));
+    NextPt[0].x = (277.0)/(1<<(3));
+    NextPt[0].y = (333.0)/(1<<(3));
+    NextPt[1].x = (269.0)/(1<<(3));
+    NextPt[1].y = (194.0)/(1<<(3));
+    NextPt[2].x = (288.0)/(1<<(3));
+    NextPt[2].y = (375.0)/(1<<(3));
+    NextPt[3].x = (444.0)/(1<<(3));
+    NextPt[3].y = (131.0)/(1<<(3));
+    NextPt[4].x = (292.0)/(1<<(3));
+    NextPt[4].y = (298.0)/(1<<(3));
 
     queue->enqueueWriteBuffer(PrevPtBuffer,TRUE,0,iNbPt*sizeof(cl_float2),PrevPt);
     queue->enqueueWriteBuffer(NextPtBuffer,TRUE,0,iNbPt*sizeof(cl_float2),NextPt);
@@ -295,7 +318,7 @@ void calc_flow()
 
         err = kernel_lkflow->setArg(  argCnt++, (I->imgLvl[i].h) ); // cols
         err = kernel_lkflow->setArg(  argCnt++, (I->imgLvl[i].w) ); // rows
-        err = kernel_lkflow->setArg(  argCnt++, 5 ); // number of iter
+        err = kernel_lkflow->setArg(  argCnt++, 15 ); // number of iter
         err = kernel_lkflow->setArg(  argCnt++, i );  // level
 
 
@@ -303,6 +326,29 @@ void calc_flow()
         queue->enqueueReadBuffer(NextPtBuffer,TRUE,NULL,iNbPt*sizeof(cl_float2),NextPt);
         queue->enqueueReadBuffer(ftmpBuffer,TRUE,NULL,(5*2+1)*(5*2+1)*sizeof(cl_float2),ftmp);
 
+        for(int il=0;il<(2*5+1)*(2*5+1);il++)
+        {
+            if(il%(2*5+1) == 0)
+                std::cout << std::endl;
+
+            std::cout << (float)ftmp[il].x << " ";
+        }
+
+
+        std::cout << std::endl << "----------------------------- ";
+        for(int il=0;il<(2*5+1)*(2*5+1);il++)
+        {
+            if(il%(2*5+1) == 0)
+                std::cout << std::endl;
+
+            std::cout << (float)ftmp[il].y << " ";
+        }
+
+        for(int j=0;j<iNbPt;j++)
+        {
+            //cv::line( *ImageConcat, cv::Point( PrevPt[j].x, PrevPt[j].y ), cv::Point( NextPt[j].x+640, NextPt[j].y ) ,cv::Scalar(0,0,0));
+            std::cout << "prev :  "<< PrevPt[j].x << " " << PrevPt[j].y << " Next " << NextPt[j].x << " " << NextPt[j].y << std::endl;
+        }
     }
 
     for(int j=0;j<iNbPt;j++)

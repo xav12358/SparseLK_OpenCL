@@ -48,7 +48,7 @@ __kernel void downfilter_y_g(
 
     int output = round(x0 + x1 + x2 + x3 + x4);
 
-    if( ix < dst_w-2 && iy < dst_h-2 ) {
+    if( ix < dst_w && iy < dst_h ) {
         dst[iy*dst_w + ix ] = (uchar)output;
     }
 
